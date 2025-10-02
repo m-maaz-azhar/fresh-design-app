@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import serviceMobileDev from "@/assets/service-mobile-dev.jpg";
 import serviceWebDev from "@/assets/service-web-dev.jpg";
 import serviceMarketing from "@/assets/service-marketing.jpg";
@@ -80,6 +79,31 @@ const services: Service[] = [
 
 const ServicesSection = () => {
   const [activeService, setActiveService] = useState(0);
+  const serviceRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollContainer = document.getElementById("services-scroll-container");
+      if (!scrollContainer) return;
+
+      const scrollPosition = scrollContainer.scrollTop + scrollContainer.clientHeight / 3;
+
+      serviceRefs.current.forEach((ref, index) => {
+        if (ref) {
+          const { offsetTop, offsetHeight } = ref;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveService(index);
+          }
+        }
+      });
+    };
+
+    const scrollContainer = document.getElementById("services-scroll-container");
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll);
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
 
   return (
     <section className="min-h-screen flex relative" id="services">
@@ -103,62 +127,53 @@ const ServicesSection = () => {
       </div>
 
       {/* Right side - Services Navigation */}
-      <div className="w-full lg:w-1/2 bg-background relative overflow-y-auto">
+      <div 
+        id="services-scroll-container"
+        className="w-full lg:w-1/2 bg-background relative overflow-y-auto h-screen"
+      >
         {/* Vertical line on right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary to-transparent"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary to-transparent z-10"></div>
 
-        <div className="p-8 lg:p-12 xl:p-16 min-h-screen flex flex-col">
-          <h2 className="text-3xl font-bold text-primary mb-8 border-b-2 border-primary pb-4">
-            SERVICES OVERVIEW
-          </h2>
+        <div className="p-8 lg:p-12 xl:p-16">
+          <div className="sticky top-0 bg-background z-20 pb-8 mb-8">
+            <h2 className="text-3xl font-bold text-primary border-b-2 border-primary pb-4">
+              SERVICES OVERVIEW
+            </h2>
+          </div>
 
-          <div className="flex-1 space-y-2">
+          <div className="space-y-0">
             {services.map((service, index) => (
-              <div key={service.id} className="border-b border-border">
-                <button
-                  onClick={() => setActiveService(index)}
-                  className={`w-full text-left py-6 transition-all duration-300 group ${
-                    index === activeService ? "bg-background" : "hover:bg-muted/30"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                      {service.title}
-                    </h3>
-                    <ChevronRight
-                      className={`w-6 h-6 transition-all duration-300 ${
-                        index === activeService
-                          ? "rotate-90 text-primary"
-                          : "text-muted-foreground group-hover:text-primary group-hover:translate-x-1"
-                      }`}
-                    />
-                  </div>
-
-                  <div
-                    className={`overflow-hidden transition-all duration-500 ${
-                      index === activeService
-                        ? "max-h-96 opacity-100 mt-4"
-                        : "max-h-0 opacity-0"
+              <div
+                key={service.id}
+                ref={(el) => (serviceRefs.current[index] = el)}
+                className="min-h-screen flex items-center border-b border-border last:border-b-0"
+              >
+                <div className="py-12 w-full">
+                  <h3 
+                    className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300 ${
+                      index === activeService ? "text-primary" : "text-foreground"
                     }`}
                   >
-                    <div className="space-y-4">
-                      <p className="text-lg font-semibold text-primary">
-                        {service.subtitle}
-                      </p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {service.description}
-                      </p>
-                      <ul className="space-y-2 pt-2">
-                        {service.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start space-x-2">
-                            <span className="text-primary mt-1">•</span>
-                            <span className="text-muted-foreground">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {service.title}
+                  </h3>
+
+                  <div className="space-y-6">
+                    <p className="text-xl font-semibold text-primary">
+                      {service.subtitle}
+                    </p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      {service.description}
+                    </p>
+                    <ul className="space-y-3 pt-4">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start space-x-3">
+                          <span className="text-primary text-xl mt-1">•</span>
+                          <span className="text-muted-foreground text-lg">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </button>
+                </div>
               </div>
             ))}
           </div>
