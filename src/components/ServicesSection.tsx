@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import serviceMobileDev from "@/assets/service-mobile-dev.jpg";
 import serviceWebDev from "@/assets/service-web-dev.jpg";
 import serviceMarketing from "@/assets/service-marketing.jpg";
@@ -78,60 +78,40 @@ const services: Service[] = [
 ];
 
 const ServicesSection = () => {
-  const [activeService, setActiveService] = useState(0);
-  const serviceRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeService, setActiveService] = useState<number | null>(null);
 
-  useEffect(() => {
-    const scrollContainer = document.getElementById("services-scroll-container");
-    if (!scrollContainer) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntries = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visibleEntries.length > 0) {
-          const firstVisibleId = Number(visibleEntries[0].target.getAttribute("data-service-index"));
-          if (!Number.isNaN(firstVisibleId)) {
-            setActiveService(firstVisibleId);
-          }
-        }
-      },
-      {
-        root: scrollContainer,
-        threshold: [0.25, 0.6]
-      }
-    );
-
-    serviceRefs.current.forEach((ref) => {
-      if (ref) {
-        observer.observe(ref);
-      }
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const handleServiceClick = (index: number) => {
+    setActiveService(activeService === index ? null : index);
+  };
 
   return (
     <section className="min-h-screen flex relative" id="services">
       {/* Left side - Image */}
       <div className="w-full lg:w-1/2 relative overflow-hidden bg-black">
-        {services.map((service, index) => (
-          <div
-            key={service.id}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              index === activeService ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <img
-              src={service.image}
-              alt={service.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/30"></div>
+        {activeService !== null ? (
+          services.map((service, index) => (
+            <div
+              key={service.id}
+              className={`absolute inset-0 transition-opacity duration-700 ${
+                index === activeService ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <img
+                src={service.image}
+                alt={service.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/30"></div>
+            </div>
+          ))
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white/70 text-2xl font-semibold text-center">
+              <div className="mb-4">Services Overview</div>
+              <div className="text-lg">Click on a service to view details</div>
+            </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Right side - Services Navigation */}
@@ -150,49 +130,65 @@ const ServicesSection = () => {
           </div>
 
           <div className="space-y-0">
-            {services.map((service, index) => (
-              <div
-                key={service.id}
-                data-service-index={index}
-                ref={(el) => (serviceRefs.current[index] = el)}
-                className={`border-b border-border last:border-b-0 transition-colors duration-300 ${
-                  index === activeService ? "bg-primary/5" : "bg-transparent"
-                }`}
-              >
-                <div className="py-10 lg:py-12 w-full">
-                  <h3
-                    className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300 ${
-                      index === activeService ? "text-primary" : "text-foreground"
-                    }`}
+            {services.map((service, index) => {
+              const isActive = index === activeService;
+              
+              return (
+                <div
+                  key={service.id}
+                  className={`border-b border-border last:border-b-0 transition-all duration-300 ${
+                    isActive ? "bg-primary/5" : "bg-transparent"
+                  }`}
+                >
+                  <button
+                    className={`py-10 lg:py-12 w-full text-left hover:bg-primary/2 transition-colors duration-300 focus:outline-none focus:bg-primary/2`}
+                    onClick={() => handleServiceClick(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleServiceClick(index);
+                      }
+                    }}
                   >
-                    {service.title}
-                  </h3>
+                    <h3
+                      className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300 ${
+                        isActive ? "text-primary" : "text-foreground"
+                      }`}
+                    >
+                      {service.title}
+                      <span className={`ml-4 text-2xl transition-transform duration-300 ${
+                        isActive ? "rotate-180" : "rotate-0"
+                      }`}>
+                        ▼
+                      </span>
+                    </h3>
 
-                  <div
-                    className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-out ${
-                      index === activeService ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <div className="space-y-6 pt-1">
-                      <p className="text-xl font-semibold text-primary">
-                        {service.subtitle}
-                      </p>
-                      <p className="text-muted-foreground text-lg leading-relaxed">
-                        {service.description}
-                      </p>
-                      <ul className="space-y-3 pt-4">
-                        {service.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start space-x-3">
-                            <span className="text-primary text-xl mt-1">•</span>
-                            <span className="text-muted-foreground text-lg">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
+                    <div
+                      className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-out ${
+                        isActive ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="space-y-6 pt-1">
+                        <p className="text-xl font-semibold text-primary">
+                          {service.subtitle}
+                        </p>
+                        <p className="text-muted-foreground text-lg leading-relaxed">
+                          {service.description}
+                        </p>
+                        <ul className="space-y-3 pt-4">
+                          {service.features.map((feature, idx) => (
+                            <li key={`${service.id}-feature-${idx}`} className="flex items-start space-x-3">
+                              <span className="text-primary text-xl mt-1">•</span>
+                              <span className="text-muted-foreground text-lg">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

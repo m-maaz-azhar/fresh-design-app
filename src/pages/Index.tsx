@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import ServicesSection from "@/components/ServicesSection";
+import PortfolioSection from "@/components/PortfolioSection";
 import ProcessSection from "@/components/ProcessSection";
 
 const Index = () => {
@@ -10,6 +11,7 @@ const Index = () => {
       <Hero />
       <ProcessSection />
       <ServicesSection />
+      <PortfolioSection />
     </div>
   );
 };
