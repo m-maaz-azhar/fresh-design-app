@@ -157,22 +157,24 @@ const ServicesSection = () => {
                     {service.title}
                   </h3>
 
-                  <div className="space-y-6">
-                    <p className="text-xl font-semibold text-primary">
-                      {service.subtitle}
-                    </p>
-                    <p className="text-muted-foreground text-lg leading-relaxed">
-                      {service.description}
-                    </p>
-                    <ul className="space-y-3 pt-4">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start space-x-3">
-                          <span className="text-primary text-xl mt-1">•</span>
-                          <span className="text-muted-foreground text-lg">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {index === activeService && (
+                    <div className="space-y-6 animate-fade-in">
+                      <p className="text-xl font-semibold text-primary">
+                        {service.subtitle}
+                      </p>
+                      <p className="text-muted-foreground text-lg leading-relaxed">
+                        {service.description}
+                      </p>
+                      <ul className="space-y-3 pt-4">
+                        {service.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start space-x-3">
+                            <span className="text-primary text-xl mt-1">•</span>
+                            <span className="text-muted-foreground text-lg">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
