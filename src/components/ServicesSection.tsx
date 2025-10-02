@@ -82,27 +82,35 @@ const ServicesSection = () => {
   const serviceRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollContainer = document.getElementById("services-scroll-container");
-      if (!scrollContainer) return;
+    const scrollContainer = document.getElementById("services-scroll-container");
+    if (!scrollContainer) return;
 
-      const scrollPosition = scrollContainer.scrollTop + scrollContainer.clientHeight / 3;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 
-      serviceRefs.current.forEach((ref, index) => {
-        if (ref) {
-          const { offsetTop, offsetHeight } = ref;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveService(index);
+        if (visibleEntries.length > 0) {
+          const firstVisibleId = Number(visibleEntries[0].target.getAttribute("data-service-index"));
+          if (!Number.isNaN(firstVisibleId)) {
+            setActiveService(firstVisibleId);
           }
         }
-      });
-    };
+      },
+      {
+        root: scrollContainer,
+        threshold: [0.25, 0.6]
+      }
+    );
 
-    const scrollContainer = document.getElementById("services-scroll-container");
-    if (scrollContainer) {
-      scrollContainer.addEventListener("scroll", handleScroll);
-      return () => scrollContainer.removeEventListener("scroll", handleScroll);
-    }
+    serviceRefs.current.forEach((ref) => {
+      if (ref) {
+        observer.observe(ref);
+      }
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -145,11 +153,14 @@ const ServicesSection = () => {
             {services.map((service, index) => (
               <div
                 key={service.id}
+                data-service-index={index}
                 ref={(el) => (serviceRefs.current[index] = el)}
-                className="min-h-screen flex items-center border-b border-border last:border-b-0"
+                className={`border-b border-border last:border-b-0 transition-colors duration-300 ${
+                  index === activeService ? "bg-primary/5" : "bg-transparent"
+                }`}
               >
-                <div className="py-12 w-full">
-                  <h3 
+                <div className="py-10 lg:py-12 w-full">
+                  <h3
                     className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300 ${
                       index === activeService ? "text-primary" : "text-foreground"
                     }`}
@@ -157,8 +168,12 @@ const ServicesSection = () => {
                     {service.title}
                   </h3>
 
-                  {index === activeService && (
-                    <div className="space-y-6 animate-fade-in">
+                  <div
+                    className={`overflow-hidden transition-[max-height,opacity] duration-500 ease-out ${
+                      index === activeService ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="space-y-6 pt-1">
                       <p className="text-xl font-semibold text-primary">
                         {service.subtitle}
                       </p>
@@ -174,7 +189,7 @@ const ServicesSection = () => {
                         ))}
                       </ul>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}
